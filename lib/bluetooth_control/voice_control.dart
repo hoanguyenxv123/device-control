@@ -19,7 +19,8 @@ class VoiceControl {
       isListening = true;
       _speech.listen(
         onResult: (result) {
-          if (result.finalResult) { // Chỉ xử lý khi kết quả cuối cùng
+          if (result.finalResult) {
+            // Chỉ xử lý khi kết quả cuối cùng
             String commandText = result.recognizedWords;
             print("📢 Lệnh nhận được: $commandText");
             onCommandReceived(commandText);
@@ -35,20 +36,21 @@ class VoiceControl {
   }
 
   void processVoiceCommand(
-      String command,
-      List<int> deviceIds,
-      Function(int, bool) sendCommand,
-      Function(int, bool) updateUI, // ✅ Thêm callback cập nhật UI
-      ) async {
+    String command,
+    List<int> deviceIds,
+    Function(int, bool) sendCommand,
+    Function(int, bool) updateUI, // ✅ Thêm callback cập nhật UI
+  ) async {
     command = command.toLowerCase();
     print("📢 Xử lý lệnh giọng nói: $command");
 
     Map<int, String> deviceMap = {
-      2: "đèn phòng",
-      3: "điều hòa",
-      4: "tivi",
-      5: "quạt trần",
-      8: "wifi",
+      2: "đèn phòng khách", // khách
+      3: "đèn phòng bếp", //ngủ
+      4: "đèn phòng học", //ngủ
+      5: "đèn phòng tắm", // bếp
+      6: "đèn phòng ngủ", // office
+      7: "tivi", // tắm
     };
 
     int? detectedDeviceId;
@@ -86,5 +88,4 @@ class VoiceControl {
       print("⚠️ Không nhận diện được thiết bị");
     }
   }
-
 }

@@ -6,6 +6,7 @@ import 'package:test_control/screens/room/widget/header_room.dart';
 
 import '../../bluetooth_control/voice_control.dart';
 import '../../data/remote/firestore_service.dart';
+import '../../model/device/device_model.dart';
 import '../../model/room/room_model.dart';
 
 class RoomScreen extends StatefulWidget {
@@ -29,15 +30,12 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> sendCommand(int deviceId, bool turnOn) async {
-    await _firestoreService.updateDeviceByPort(
-      widget.room.id,
-      widget.room.deviceList.firstWhere((d) => d.devicePort == deviceId).devicePort,
-      turnOn,
-    );
-
-    setState(() {
-      widget.room.deviceList.firstWhere((d) => d.devicePort == deviceId).isOn = turnOn;
-    });
+    try {
+      await _firestoreService.updateDeviceByPort(widget.room.id, deviceId, turnOn);
+      print("✅ Gửi lệnh cập nhật thiết bị thành công: $deviceId - Trạng thái: $turnOn");
+    } catch (e) {
+      print("❌ Lỗi khi gửi lệnh cập nhật thiết bị: $e");
+    }
   }
 
   void _handleVoiceCommand(String command) {
@@ -45,14 +43,11 @@ class _RoomScreenState extends State<RoomScreen> {
       command,
       widget.room.deviceList.map((d) => d.devicePort).toList(),
       sendCommand,
-          (deviceId, turnOn) { // ✅ Truyền thêm callback cập nhật UI
-        setState(() {
-          widget.room.deviceList.firstWhere((d) => d.devicePort == deviceId).isOn = turnOn;
-        });
+          (deviceId, turnOn) {
+        print("🎤 Cập nhật UI từ giọng nói: $deviceId - Trạng thái: $turnOn");
       },
     );
   }
-
 
   void _toggleListening() {
     if (isListening) {
@@ -92,16 +87,29 @@ class _RoomScreenState extends State<RoomScreen> {
             ],
           ),
           SizedBox(height: 40),
-          TitleAddNew(title: 'Devices', addNew: () {}),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: TitleAddNew(title: 'Devices', addNew: () {}),
+          ),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: ListView.builder(
-                itemCount: widget.room.deviceList.length,
-                itemBuilder: (context, index) {
-                  return Device(
-                    device: widget.room.deviceList[index],
-                    roomId: widget.room.id,
+              child: StreamBuilder<List<DeviceModel>>(
+                stream: _firestoreService.getDevicesStream(widget.room.id),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  List<DeviceModel> devices = snapshot.data!;
+
+                  return ListView.builder(
+                    itemCount: devices.length,
+                    itemBuilder: (context, index) {
+                      return Device(
+                        device: devices[index],
+                        roomId: widget.room.id,
+                      );
+                    },
                   );
                 },
               ),
@@ -113,7 +121,10 @@ class _RoomScreenState extends State<RoomScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _toggleListening,
         backgroundColor: isListening ? Colors.red : Colors.blue,
-        child: Icon(isListening ? Icons.mic_off : Icons.mic, color: Colors.white),
+        child: Icon(
+          isListening ? Icons.mic_off : Icons.mic,
+          color: Colors.white,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

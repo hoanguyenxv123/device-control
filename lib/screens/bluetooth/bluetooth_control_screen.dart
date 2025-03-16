@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_control/screens/dashboard.dart';
+import 'package:test_control/screens/dashboard_screen.dart';
 
 class BluetoothControlScreen extends StatefulWidget {
   @override
@@ -44,7 +44,7 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
         await device.connect(autoConnect: true);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Dashboard()),
+          MaterialPageRoute(builder: (context) => DashboardScreen()),
         );
       } catch (e) {
         print("❌ Không thể tự động kết nối: $e");
@@ -92,7 +92,7 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
       saveDeviceId(device.remoteId.toString()); // 🔥 Lưu lại để tự động kết nối sau này
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Dashboard()),
+        MaterialPageRoute(builder: (context) => DashboardScreen()),
       );
     } catch (e) {
       print("❌ Lỗi kết nối: $e");
@@ -117,11 +117,13 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
                 final result = scanResults[index];
                 return ListTile(
                   title: Text(
-                    result.advertisementData.advName.isNotEmpty
+                    result.device.remoteId.toString() == "01:B6:EC:FC:9C:33"
+                        ? "Điều khiển thông minh"
+                        : (result.advertisementData.advName.isNotEmpty
                         ? result.advertisementData.advName
                         : (result.device.platformName.isNotEmpty
                         ? result.device.platformName
-                        : "Không tên"),
+                        : "Không tên")),
                   ),
                   subtitle: Text(result.device.remoteId.toString()),
                   onTap: () => connectToDevice(result.device),

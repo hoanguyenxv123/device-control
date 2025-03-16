@@ -79,7 +79,7 @@ class HeaderRoom extends StatelessWidget {
               text: TextSpan(
                 style: TextStyle(color: Colors.grey[700]),
                 children: [
-                  TextSpan(text: "${roomModel.devices} devices"),
+                  TextSpan(text: "${roomModel.deviceList.length} devices"),
                   TextSpan(
                     text: "  •  ",
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),

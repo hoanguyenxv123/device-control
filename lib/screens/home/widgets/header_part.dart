@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../data/provider/user_provider.dart';
 import '../../bluetooth/bluetooth_control_screen.dart';
 
 class HeaderPart extends StatefulWidget {
@@ -11,18 +15,20 @@ class HeaderPart extends StatefulWidget {
 }
 
 class _HeaderPartState extends State<HeaderPart> {
-  bool isConnected = false;
+  bool isConnected = false; // Biến trạng thái kết nối Bluetooth
 
   @override
   void initState() {
     super.initState();
-    checkBluetoothConnection();
+    checkBluetoothConnection(); // Kiểm tra trạng thái kết nối khi widget được khởi tạo
+    Provider.of<UserProvider>(context, listen: false).fetchUserData();
   }
 
+  /// 🔹 Kiểm tra trạng thái kết nối Bluetooth
   void checkBluetoothConnection() async {
     bool status = await isBluetoothConnected();
     if (!status) {
-      autoConnectBluetooth();
+      autoConnectBluetooth(); // Thử tự động kết nối lại nếu chưa kết nối
     } else {
       setState(() {
         isConnected = true;
@@ -30,22 +36,28 @@ class _HeaderPartState extends State<HeaderPart> {
     }
   }
 
+  /// 🔹 Kiểm tra xem có thiết bị Bluetooth nào đang kết nối không
   Future<bool> isBluetoothConnected() async {
     List<BluetoothDevice> connectedDevices =
         await FlutterBluePlus.connectedDevices;
     return connectedDevices.isNotEmpty;
   }
 
+  /// 🔹 Tự động kết nối lại với thiết bị đã kết nối trước đó
   void autoConnectBluetooth() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? lastDeviceId = prefs.getString('lastConnectedDevice');
+
+    // Nếu có thiết bị đã kết nối trước đó, thực hiện kết nối lại
     if (lastDeviceId != null) {
       BluetoothDevice device = BluetoothDevice.fromId(lastDeviceId);
       try {
         await device.connect();
         await Future.delayed(
           Duration(seconds: 2),
-        ); // Đợi 2 giây để kiểm tra trạng thái
+        ); // Đợi 2 giây để kiểm tra trạng thái kết nối
+
+        // Kiểm tra danh sách thiết bị đang kết nối
         List<BluetoothDevice> connectedDevices =
             await FlutterBluePlus.connectedDevices;
         if (connectedDevices.any((d) => d.remoteId.str == lastDeviceId)) {
@@ -64,6 +76,7 @@ class _HeaderPartState extends State<HeaderPart> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     return Container(
       height: 200,
       width: double.infinity,
@@ -79,9 +92,22 @@ class _HeaderPartState extends State<HeaderPart> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // 🔹 Phần hiển thị avatar, lời chào và biểu tượng thông báo
             Row(
               children: [
-                CircleAvatar(radius: 24),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage:
+                      userProvider.user?.avatarUrl != null
+                          ? (userProvider.user!.avatarUrl.startsWith(
+                                '/data/user/0/',
+                              )
+                              ? FileImage(File(userProvider.user!.avatarUrl))
+                              : AssetImage(userProvider.user!.avatarUrl)
+                                  as ImageProvider)
+                          : AssetImage('assets/images/default_avatar.png'),
+                  backgroundColor: Colors.white,
+                ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Align(
@@ -96,7 +122,7 @@ class _HeaderPartState extends State<HeaderPart> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Hi, Hoamuathu',
+                        'Hi, ${userProvider.user?.name}',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -106,6 +132,7 @@ class _HeaderPartState extends State<HeaderPart> {
                     ),
                   ),
                 ),
+                // 🔹 Biểu tượng thông báo
                 Container(
                   height: 36,
                   width: 36,
@@ -134,6 +161,7 @@ class _HeaderPartState extends State<HeaderPart> {
                 bool isConnected = snapshot.data ?? false;
                 return GestureDetector(
                   onTap: () {
+                    // Chuyển đến màn hình điều khiển Bluetooth khi nhấn vào
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => BluetoothControlScreen(),

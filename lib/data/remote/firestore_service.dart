@@ -12,7 +12,6 @@ class FirestoreService {
     await roomRef.set({
       'name': room.name,
       'iconPath': room.iconPath,
-      'devices': room.devices,
       'id': room.id,
       'color': room.color,
       'imagePath': room.imagePath,
@@ -26,6 +25,7 @@ class FirestoreService {
           .set(device.toJson());
     }
   }
+
   /// Lắng nghe thay đổi trạng thái thiết bị theo `devicePort`
   Stream<bool?> deviceStateStream(String roomId, int devicePort) {
     return FirebaseFirestore.instance
@@ -35,13 +35,12 @@ class FirestoreService {
         .where('devicePort', isEqualTo: devicePort)
         .snapshots()
         .map((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first['isOn'] as bool;
-      }
-      return null;
-    });
+          if (snapshot.docs.isNotEmpty) {
+            return snapshot.docs.first['isOn'] as bool;
+          }
+          return null;
+        });
   }
-
 
   /// Lấy trạng thái thiết bị
   Future<bool?> getDeviceState(String roomId, int devicePort) async {
@@ -80,7 +79,6 @@ class FirestoreService {
           // Lấy ID từ Firestore document
           name: doc['name'],
           iconPath: doc['iconPath'],
-          devices: doc['devices'],
           color: doc['color'],
           imagePath: doc['imagePath'],
           deviceList: devices,
@@ -137,6 +135,29 @@ class FirestoreService {
     }
   }
 
+  Future<void> updateDashBoard(int devicePort, bool isOn) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collectionGroup('deviceList')
+        .where('devicePort', isEqualTo: devicePort)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) {
+      print("❌ Không tìm thấy thiết bị có devicePort = $devicePort");
+      return;
+    }
+
+    String deviceId = querySnapshot.docs.first.id;
+    DocumentReference deviceRef = querySnapshot.docs.first.reference;
+
+    try {
+      await deviceRef.update({'isOn': isOn});
+      print("✅ Đã cập nhật trạng thái thiết bị cổng $devicePort thành $isOn");
+    } catch (e) {
+      print("❌ Lỗi khi cập nhật Firestore: $e");
+    }
+  }
+
+
   /// **Xóa thiết bị**
   Future<void> deleteDevice(String roomId, String deviceId) async {
     try {
@@ -190,5 +211,19 @@ class FirestoreService {
   /// **Xóa phòng**
   Future<void> deleteRoom(String roomId) async {
     await _db.collection('rooms').doc(roomId).delete();
+  }
+
+  /// Theo dõi thay đổi của thiết bị trong Firestore theo thời gian thực:
+  Stream<List<DeviceModel>> getDevicesStream(String roomId) {
+    return FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('deviceList')
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return DeviceModel.fromJson(doc.data() as Map<String, dynamic>);
+          }).toList();
+        });
   }
 }

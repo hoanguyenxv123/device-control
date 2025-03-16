@@ -35,7 +35,7 @@ class RoomCard extends StatelessWidget {
               ),
             ),
             Text(
-              "${room.devices} Devices",
+              "${room.deviceList.length} Devices",
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],

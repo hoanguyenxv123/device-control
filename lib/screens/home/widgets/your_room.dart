@@ -17,12 +17,15 @@ class _YourRoomState extends State<YourRoom> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          TitleAddNew(title: 'Your Room', addNew: () {}),
-          Expanded(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 20.0,right: 20,left: 20),
+          child: TitleAddNew(title: 'Your Room', addNew: () {}),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: StreamBuilder<List<RoomModel>>(
               stream: _firestoreService.getRooms(),
               builder: (context, snapshot) {
@@ -70,9 +73,9 @@ class _YourRoomState extends State<YourRoom> {
               },
             ),
           ),
-          const SizedBox(height: 10),
-        ],
-      ),
+        ),
+        const SizedBox(height: 10),
+      ],
     );
   }
 }

@@ -138,15 +138,14 @@ class _DeviceState extends State<Device> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 🔥 Đã sửa lỗi truyền roomId và deviceId
               SwitchButton(
                 roomId: widget.roomId,
-                devicePort: widget.device.devicePort, // 🔥 Sửa thành devicePort
+                devicePort: widget.device.devicePort,
                 onChanged: (value) {
                   sendCommand(
                     widget.device.devicePort,
                     value,
-                  ); // 🔥 Đảm bảo gửi đúng devicePort
+                  );
                 },
               ),
               const SizedBox(height: 8),

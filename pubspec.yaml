@@ -41,10 +41,22 @@ dependencies:
 
   speech_to_text: ^7.0.0
 
-  shared_preferences: ^2.5.2
-
   cloud_firestore: ^5.6.5
   firebase_core: ^3.12.1
+  shared_preferences: ^2.4.6
+  firebase_auth: ^5.5.1
+  smooth_page_indicator: ^1.2.1
+
+  font_awesome_flutter: ^10.8.0
+
+  google_fonts: ^6.2.1
+
+  provider: ^6.1.0
+
+  image_picker: ^1.1.2
+
+  email_validator: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
