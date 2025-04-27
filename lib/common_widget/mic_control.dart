@@ -1,75 +1,55 @@
 import 'package:flutter/material.dart';
+
 import '../bluetooth_control/voice_control.dart';
 import '../data/remote/firestore_service.dart';
-import '../model/room/room_model.dart';
 
 class MicControl extends StatefulWidget {
-  final List<RoomModel> rooms; // Nhận danh sách phòng
-
-  const MicControl({super.key, required this.rooms});
-
   @override
   State<MicControl> createState() => _MicControlState();
 }
 
-class _MicControlState extends State<MicControl> {
+class _MicControlState extends State<MicControl>
+    with SingleTickerProviderStateMixin {
   late VoiceControl _voiceControl;
   bool isListening = false;
+  String spokenText = '';
   final FirestoreService _firestoreService = FirestoreService();
+
+  late AnimationController _waveController;
 
   @override
   void initState() {
     super.initState();
-    _voiceControl = VoiceControl(onCommandReceived: _handleVoiceCommand);
+
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+
+    _voiceControl = VoiceControl(
+      onCommandReceived: _handleVoiceCommand,
+      onSpeechChanged: (text) {
+        setState(() {
+          spokenText = text;
+        });
+      },
+    );
   }
 
-  Future<void> sendCommand(String roomId, int deviceId, bool turnOn) async {
-    await _firestoreService.updateDeviceByPort(roomId, deviceId, turnOn);
-  }
+  void _handleVoiceCommand(String command) async {
+    final actions = await _voiceControl.processVoiceCommand(command);
 
-  void _handleVoiceCommand(String command) {
-    String lowerCommand = command.toLowerCase();
-    bool? turnOn;
-
-    if (lowerCommand.contains("bật")) {
-      turnOn = true;
-    } else if (lowerCommand.contains("tắt")) {
-      turnOn = false;
+    for (var action in actions) {
+      final port = action.key;
+      final turnOn = action.value;
+      _firestoreService.updateDeviceByPortGlobal(port, turnOn);
+      debugPrint("🎯 UI update for device $port: ${turnOn ? 'BẬT' : 'TẮT'}");
     }
 
-    if (turnOn == null) {
-      print("❌ Không xác định được hành động (bật/tắt) từ lệnh: $command");
-      return;
-    }
-
-    // Kiểm tra danh sách thiết bị
-    for (var room in widget.rooms) {
-      print("📌 Kiểm tra phòng: ${room.name}");
-      for (var device in room.deviceList) {
-        print("🔹 Thiết bị: ${device.name} (Port: ${device.devicePort})");
-      }
-    }
-
-    // Tìm thiết bị
-    for (var room in widget.rooms) {
-      for (var device in room.deviceList) {
-        if (lowerCommand.contains(device.name.toLowerCase())) {
-          print(
-            "✅ Nhận lệnh '${command}' - Cập nhật thiết bị: ${device.name} (Port: ${device.devicePort})",
-          );
-
-          // Gửi cập nhật lên Firestore
-          _firestoreService.updateDeviceByPort(
-            room.id,
-            device.devicePort,
-            turnOn,
-          );
-          return;
-        }
-      }
-    }
-
-    print("❌ Không tìm thấy thiết bị phù hợp với lệnh: $command");
+    setState(() {
+      isListening = false;
+      spokenText = '';
+    });
   }
 
   void _toggleListening() {
@@ -78,17 +58,58 @@ class _MicControlState extends State<MicControl> {
     } else {
       _voiceControl.startListening();
     }
+
     setState(() {
       isListening = !isListening;
+      if (!isListening) spokenText = '';
     });
   }
 
   @override
+  void dispose() {
+    _waveController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: _toggleListening,
-      backgroundColor: isListening ? Colors.red : Colors.blue,
-      child: Icon(isListening ? Icons.mic_off : Icons.mic, color: Colors.white),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (spokenText.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              '"$spokenText"',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        FloatingActionButton(
+          onPressed: _toggleListening,
+          backgroundColor: isListening ? Colors.red : Colors.blue,
+          child: Icon(
+            isListening ? Icons.mic_none : Icons.mic,
+            color: Colors.white,
+            size: 30,
+          ),
+        ),
+      ],
     );
   }
 }

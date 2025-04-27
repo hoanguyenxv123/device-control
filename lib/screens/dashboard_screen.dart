@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_control/screens/setting/setting_screen.dart';
-import '../data/remote/firestore_service.dart';
+
 import 'home/home_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -29,16 +29,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         duration: Duration(milliseconds: 300),
         child: _screens[_selectedIndex],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home, size: 26),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings, size: 26),
+            label: "Settings",
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-
     );
   }
 }
-

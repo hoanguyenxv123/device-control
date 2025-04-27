@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../common_widget/switch_button.dart';
 import '../../../constant/app_colors.dart';
+import '../../../model/device/device_model.dart';
 import '../../../model/room/room_model.dart';
 
 class HeaderRoom extends StatelessWidget {
   final RoomModel roomModel;
+  final List<DeviceModel> devices;
 
-  const HeaderRoom({super.key, required this.roomModel});
+  const HeaderRoom({super.key, required this.roomModel, required this.devices});
 
   @override
   Widget build(BuildContext context) {
@@ -63,12 +65,7 @@ class HeaderRoom extends StatelessWidget {
                     ),
                   ],
                 ),
-                SwitchButton(
-                  roomId: roomModel.id, // Đảm bảo roomModel.id không bị rỗng
-                  devicePort: 0,
-                  onChanged: (bool value) {},
-                ),
-
+                SwitchButton(roomId: roomModel.id, isRoom: true),
               ],
             ),
           ),
@@ -79,7 +76,7 @@ class HeaderRoom extends StatelessWidget {
               text: TextSpan(
                 style: TextStyle(color: Colors.grey[700]),
                 children: [
-                  TextSpan(text: "${roomModel.deviceList.length} devices"),
+                  TextSpan(text: "${devices.length} devices"),
                   TextSpan(
                     text: "  •  ",
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),

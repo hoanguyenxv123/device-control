@@ -1,34 +1,39 @@
 class DeviceModel {
-  final int devicePort; // ID của thiết bị, tương ứng với chân trên Arduino
-  final String name; // Tên thiết bị (Lights, SmartTV, ...)
-  final String type; // Loại thiết bị (Phillips Hue 2, Apple TV 4K, ...)
-  final String imagePath; // Đường dẫn hình ảnh thiết bị
-  bool isOn; // Trạng thái thiết bị (Bật/Tắt)
+  final String? id;
+  final int devicePort;
+  final String name;
+  final String controllerName;
+  final String type;
+  final String imagePath;
+  final bool isOn;
 
   DeviceModel({
+    this.id,
     required this.devicePort,
     required this.name,
+    required this.controllerName,
     required this.type,
     required this.imagePath,
     required this.isOn,
   });
 
-  /// Chuyển từ Firestore JSON sang `DeviceModel`
-  factory DeviceModel.fromJson(Map<String, dynamic> json) {
+  factory DeviceModel.fromJson(Map<String, dynamic> json, String id) {
     return DeviceModel(
-      devicePort: json['devicePort'] ?? 0,
-      name: json['name'] ?? '',
-      type: json['type'] ?? '',
-      imagePath: json['imagePath'] ?? '',
-      isOn: json['isOn'] ?? false,
+      id: id,
+      devicePort: json['devicePort'],
+      name: json['name'],
+      controllerName: json['controllerName'] ?? '',
+      type: json['type'],
+      imagePath: json['imagePath'],
+      isOn: json['isOn'],
     );
   }
 
-  /// Chuyển từ `DeviceModel` sang Firestore JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': devicePort,
+      'devicePort': devicePort,
       'name': name,
+      'controllerName': controllerName,
       'type': type,
       'imagePath': imagePath,
       'isOn': isOn,

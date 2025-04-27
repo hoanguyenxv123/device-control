@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:test_control/screens/start/widgets/button_part.dart';
 import 'package:test_control/screens/start/widgets/slogan.dart';
 
-import '../../common_widget/primary_button.dart';
 import '../../constant/app_colors.dart';
-import '../auth/auth_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -22,7 +21,6 @@ class _StartScreenState extends State<StartScreen> {
       backgroundColor: AppColors.primaryColor,
       body: Column(
         children: [
-          // Phần logo
           Expanded(
             flex: 2,
             child: Container(
@@ -41,10 +39,7 @@ class _StartScreenState extends State<StartScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.white,
-                    Color(0xFFF5F5F5),
-                  ],
+                  colors: [Colors.white, Color(0xFFF5F5F5)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -64,17 +59,20 @@ class _StartScreenState extends State<StartScreen> {
                       children: [
                         buildPage(
                           title: "Welcome to SmartControl!",
-                          subtitle: "Easily manage and control your home devices.",
+                          subtitle:
+                              "Easily manage and control your home devices.",
                           slogan: 'Smart Living, Effortless Control!',
                         ),
                         buildPage(
                           title: "Control at Your Fingertips",
-                          subtitle: "Turn your lights, fans, and more on or off with a tap.",
+                          subtitle:
+                              "Turn your lights, fans, and more on or off with a tap.",
                           slogan: 'Tap. Control. Relax!',
                         ),
                         buildPage(
                           title: "Get Started Now!",
-                          subtitle: "Experience the convenience of a smart home.",
+                          subtitle:
+                              "Experience the convenience of a smart home.",
                           slogan: 'Simple, Fast, and Smart!',
                         ),
                       ],
@@ -85,7 +83,7 @@ class _StartScreenState extends State<StartScreen> {
                   Align(
                     alignment: Alignment.bottomRight,
                     child: Container(
-                      margin: EdgeInsets.only(right: 30,bottom: 30),
+                      margin: EdgeInsets.only(right: 30, bottom: 30),
                       child: SmoothPageIndicator(
                         controller: _controller,
                         count: 3,
@@ -98,55 +96,7 @@ class _StartScreenState extends State<StartScreen> {
                       ),
                     ),
                   ),
-
-                  // Builder(
-                  //   builder: (context) => ButtonPart(),
-                  // ),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: PrimaryButton(
-                          title: 'Login',
-                          onTap: () {
-                            print('ontap login');
-                            Navigator.of(context, rootNavigator: true).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => AuthScreen(isLogin: true),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => AuthScreen(isLogin: false),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            'Register',
-                            style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
+                  ButtonPart(),
 
                   const SizedBox(height: 50),
                 ],
@@ -158,7 +108,6 @@ class _StartScreenState extends State<StartScreen> {
     );
   }
 
-  // Widget hiển thị từng trang
   Widget buildPage({
     required String title,
     required String subtitle,
@@ -170,9 +119,7 @@ class _StartScreenState extends State<StartScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Slogan(slogan: slogan),
-          SizedBox(
-            height: 40,
-          ),
+          SizedBox(height: 20),
           Text(
             title,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -186,7 +133,7 @@ class _StartScreenState extends State<StartScreen> {
               style: const TextStyle(fontSize: 18),
             ),
           ),
-          SizedBox(height: 50)
+          SizedBox(height: 50),
         ],
       ),
     );

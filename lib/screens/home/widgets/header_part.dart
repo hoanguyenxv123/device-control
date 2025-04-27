@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../data/provider/user_provider.dart';
 import '../../bluetooth/bluetooth_control_screen.dart';
 
@@ -97,16 +96,11 @@ class _HeaderPartState extends State<HeaderPart> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundImage:
-                      userProvider.user?.avatarUrl != null
-                          ? (userProvider.user!.avatarUrl.startsWith(
-                                '/data/user/0/',
-                              )
-                              ? FileImage(File(userProvider.user!.avatarUrl))
-                              : AssetImage(userProvider.user!.avatarUrl)
-                                  as ImageProvider)
-                          : AssetImage('assets/images/default_avatar.png'),
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                  child: Text(
+                    '${userProvider.user?.name[0]}',
+                    style: TextStyle(color: Colors.white, fontSize: 22),
+                  ),
                 ),
                 SizedBox(width: 8),
                 Expanded(

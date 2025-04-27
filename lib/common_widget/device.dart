@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_control/common_widget/switch_button.dart';
-import '../model/device/device_model.dart';
+
 import '../data/remote/firestore_service.dart';
+import '../model/device/device_model.dart';
+import '../screens/add_device/add_device_screen.dart';
 
 class Device extends StatefulWidget {
   final String roomId;
@@ -23,27 +24,7 @@ class _DeviceState extends State<Device> {
   @override
   void initState() {
     super.initState();
-    fetchDeviceState();
     findControlCharacteristic();
-  }
-
-  /// 🔥 Lấy trạng thái thiết bị từ Firestore
-  void fetchDeviceState() {
-    FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(widget.roomId)
-        .collection('deviceList')
-        .doc(widget.device.devicePort.toString())
-        .snapshots()
-        .listen((snapshot) {
-          if (snapshot.exists) {
-            bool newState = snapshot.data()?['isOn'] ?? false;
-            print("📡 Firestore cập nhật: $newState (trạng thái cũ: $isOn)");
-            setState(() {
-              isOn = snapshot.data()?['isOn'] ?? false;
-            });
-          }
-        });
   }
 
   /// 🔥 Tìm đặc tính Bluetooth để gửi lệnh
@@ -123,14 +104,27 @@ class _DeviceState extends State<Device> {
                   widget.device.name,
                   style: const TextStyle(
                     color: Colors.black,
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.w500,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
-                Text(
-                  widget.device.type,
-                  style: const TextStyle(color: Colors.grey),
-                ),
+                SizedBox(height: 8,),
+                Row(
+                  children: [
+                    Icon(Icons.volume_up, color: Colors.black87, size: 20),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        "\"${widget.device.controllerName}\"",
+                        style: const TextStyle(color: Colors.black87),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),
@@ -141,16 +135,21 @@ class _DeviceState extends State<Device> {
               SwitchButton(
                 roomId: widget.roomId,
                 devicePort: widget.device.devicePort,
-                onChanged: (value) {
-                  sendCommand(
-                    widget.device.devicePort,
-                    value,
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => AddDeviceScreen(
+                            roomId: widget.roomId,
+                            initialDevice: widget.device,
+                          ),
+                    ),
                   );
                 },
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {},
                 child: const Text(
                   'Edit',
                   style: TextStyle(

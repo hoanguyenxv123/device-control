@@ -17,11 +17,10 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
   void initState() {
     super.initState();
     checkPermissions().then((_) {
-      autoConnectBluetooth();  // 🟢 Tự động kết nối lại khi mở ứng dụng
+      autoConnectBluetooth(); // 🟢 Tự động kết nối lại khi mở ứng dụng
       startScan();
     });
   }
-
 
   Future<void> checkPermissions() async {
     if (await Permission.bluetoothScan.request().isDenied ||
@@ -73,10 +72,11 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
       }
       FlutterBluePlus.scanResults.listen((results) {
         for (var r in results) {
-          print("📡 Thiết bị quét được: ${r.device.remoteId} - Tên: ${r.advertisementData.advName}");
+          print(
+            "📡 Thiết bị quét được: ${r.device.remoteId} - Tên: ${r.advertisementData.advName}",
+          );
         }
       });
-
     });
 
     await Future.delayed(Duration(seconds: 5));
@@ -89,7 +89,9 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
   Future<void> connectToDevice(BluetoothDevice device) async {
     try {
       await device.connect();
-      saveDeviceId(device.remoteId.toString()); // 🔥 Lưu lại để tự động kết nối sau này
+      saveDeviceId(
+        device.remoteId.toString(),
+      ); // 🔥 Lưu lại để tự động kết nối sau này
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => DashboardScreen()),
@@ -120,10 +122,10 @@ class _BluetoothControlScreenState extends State<BluetoothControlScreen> {
                     result.device.remoteId.toString() == "01:B6:EC:FC:9C:33"
                         ? "Điều khiển thông minh"
                         : (result.advertisementData.advName.isNotEmpty
-                        ? result.advertisementData.advName
-                        : (result.device.platformName.isNotEmpty
-                        ? result.device.platformName
-                        : "Không tên")),
+                            ? result.advertisementData.advName
+                            : (result.device.platformName.isNotEmpty
+                                ? result.device.platformName
+                                : "Không tên")),
                   ),
                   subtitle: Text(result.device.remoteId.toString()),
                   onTap: () => connectToDevice(result.device),

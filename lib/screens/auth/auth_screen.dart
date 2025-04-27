@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,7 +11,6 @@ import '../../constant/app_colors.dart';
 import '../../data/firebase/auth_service.dart';
 import '../dashboard_screen.dart';
 import 'forgot_password_screen.dart';
-import 'package:email_validator/email_validator.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key, required this.isLogin});
@@ -50,9 +50,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   Text(
                     isLogin ? 'Login here' : 'Create an account',
                     style: TextStyle(
-                        color: AppColors.primaryColor,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w900),
+                      color: AppColors.primaryColor,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   SizedBox(height: 20),
                   Text(
@@ -61,9 +62,10 @@ class _AuthScreenState extends State<AuthScreen> {
                         ? "Welcome back you've\nbeen missed!"
                         : "Create an account so you can\nexplore all the exciting jobs",
                     style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: isLogin ? 22 : 18,
-                        fontWeight: FontWeight.bold),
+                      color: Colors.black87,
+                      fontSize: isLogin ? 22 : 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 20),
                   CustomTextField(
@@ -128,11 +130,14 @@ class _AuthScreenState extends State<AuthScreen> {
 
                         if (isLogin) {
                           var user = await _authService.signIn(
-                              email: email, password: password);
+                            email: email,
+                            password: password,
+                          );
                           if (user != null) {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                  builder: (context) => DashboardScreen()),
+                                builder: (context) => DashboardScreen(),
+                              ),
                             );
                           }
                         } else {
@@ -143,16 +148,21 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (user != null) {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                  builder: (context) => DashboardScreen()),
+                                builder: (context) => DashboardScreen(),
+                              ),
                             );
                           }
                         }
                       } on FirebaseAuthException catch (e) {
                         _showErrorDialog(
-                            context, e.message ?? 'Lỗi không xác định');
+                          context,
+                          e.message ?? 'Lỗi không xác định',
+                        );
                       } catch (e) {
                         _showErrorDialog(
-                            context, 'Đã xảy ra lỗi không xác định');
+                          context,
+                          'Đã xảy ra lỗi không xác định',
+                        );
                       }
                     },
                   ),
@@ -175,24 +185,26 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 30),
                   Text(
                     'Or continue with',
                     style: TextStyle(
                       color: AppColors.primaryColor,
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CustomIcon(
-                          icon: FaIcon(FontAwesomeIcons.google, size: 20)),
+                        icon: FaIcon(FontAwesomeIcons.google, size: 20),
+                      ),
                       CustomIcon(icon: Icon(Icons.facebook)),
                       CustomIcon(icon: Icon(Icons.apple, size: 26)),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -205,7 +217,7 @@ class _AuthScreenState extends State<AuthScreen> {
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
-      builder: (context) => CustomDialog(message: message,),
+      builder: (context) => CustomDialog(message: message),
     );
   }
 
@@ -222,7 +234,7 @@ class _AuthScreenState extends State<AuthScreen> {
       return 'Email or Password fields cannot be empty.';
     }
     if (!EmailValidator.validate(email)) {
-      return 'The email address is badly formatted.';
+      return 'Email address is not formatted correctly!';
     }
 
     if (!isLogin && confirmPassword.isEmpty) {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:test_control/common_widget/mic_control.dart';
 import 'package:test_control/screens/home/widgets/header_part.dart';
 import 'package:test_control/screens/home/widgets/your_room.dart';
-import 'package:test_control/common_widget/mic_control.dart';
 
 import '../../data/remote/firestore_service.dart';
-import '../../model/room/room_model.dart';
-
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
@@ -17,35 +17,50 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+
+  void checkSpeechSupport() async {
+    SpeechToText speech = SpeechToText();
+    bool available = await speech.initialize(
+      onError: (error) => print("SpeechToText Error: ${error.errorMsg}"),
+      onStatus: (status) => print("SpeechToText Status: $status"),
+    );
+
+    if (!available) {
+      print("❌ Thiết bị không hỗ trợ Speech-to-Text.");
+    } else {
+      print("✅ Speech-to-Text hoạt động.");
+    }
+  }
+
+  Future<void> requestMicrophonePermission() async {
+    var status = await Permission.microphone.status;
+    if (!status.isGranted) {
+      status = await Permission.microphone.request();
+    }
+
+    if (status.isGranted) {
+      print("✅ Quyền micro đã được cấp!");
+      checkSpeechSupport(); // Kiểm tra sau khi có quyền
+    } else {
+      print("❌ Quyền micro bị từ chối!");
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkSpeechSupport();
+  }
+
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarIconBrightness: Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark),
+    );
     return Scaffold(
       body: Column(children: [HeaderPart(), Expanded(child: YourRoom())]),
-      floatingActionButton: StreamBuilder<List<RoomModel>>(
-        stream: _firestoreService.getRooms(), // 🔹 Lắng nghe danh sách phòng
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return FloatingActionButton(
-              onPressed: null,
-              backgroundColor: Colors.grey,
-              child: CircularProgressIndicator(color: Colors.white),
-            );
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return FloatingActionButton(
-              onPressed: null,
-              backgroundColor: Colors.red,
-              child: Icon(Icons.error, color: Colors.white),
-            );
-          }
-
-          List<RoomModel> rooms = snapshot.data!;
-          return MicControl(rooms: rooms);
-        },
-      ),
+      floatingActionButton: MicControl(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }

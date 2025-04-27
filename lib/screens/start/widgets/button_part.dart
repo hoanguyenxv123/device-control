@@ -18,7 +18,6 @@ class ButtonPart extends StatelessWidget {
             child: PrimaryButton(
               title: 'Login',
               onTap: () {
-                print('ontap login');
                 Navigator.of(context, rootNavigator: true).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => AuthScreen(isLogin: true),
@@ -27,9 +26,7 @@ class ButtonPart extends StatelessWidget {
               },
             ),
           ),
-          SizedBox(
-            width: 10,
-          ),
+          SizedBox(width: 10),
           Expanded(
             flex: 1,
             child: TextButton(
@@ -49,7 +46,7 @@ class ButtonPart extends StatelessWidget {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

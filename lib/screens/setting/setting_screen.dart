@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_control/screens/profile/profile_screen.dart';
 
 import '../../common_widget/custom_dialog.dart';
-import '../../common_widget/primary_button.dart';
-import '../../constant/app_colors.dart';
 import '../../data/provider/user_provider.dart';
 import '../start/start_screen.dart';
 
@@ -50,18 +46,12 @@ class _SettingScreenState extends State<SettingScreen> {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 40,
-                  backgroundImage:
-                      userProvider.user?.avatarUrl != null
-                          ? (userProvider.user!.avatarUrl.startsWith(
-                                '/data/user/0/',
-                              )
-                              ? FileImage(File(userProvider.user!.avatarUrl))
-                              : AssetImage(userProvider.user!.avatarUrl)
-                                  as ImageProvider)
-                          : AssetImage('assets/images/default_avatar.png'),
-
+                  radius: 32,
                   backgroundColor: Colors.white,
+                  child: Text(
+                    '${userProvider.user?.name[0]}',
+                    style: TextStyle(color: Colors.blue, fontSize: 30),
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Column(
@@ -97,7 +87,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   );
                 }),
                 _buildSettingItem(Icons.notifications, "Notifications", () {}),
-                _buildSettingItem(Icons.lock, "Privacy", () {}),
+                _buildSettingItem(Icons.language, "Language", () {}),
                 _buildSettingItem(Icons.help, "Help & Support", () {}),
               ],
             ),
@@ -154,7 +144,7 @@ class _SettingScreenState extends State<SettingScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha((255.0 * 0.1).round()),
             blurRadius: 5,
             spreadRadius: 2,
             offset: const Offset(0, 3),

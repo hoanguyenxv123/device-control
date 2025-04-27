@@ -1,91 +1,118 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+import '../model/device/device_model.dart';
 import 'bluetooth_control.dart';
 
 class VoiceControl {
   final stt.SpeechToText _speech = stt.SpeechToText();
-  bool isListening = false;
-  final Function(String) onCommandReceived;
   final BluetoothControl _bluetoothControl = BluetoothControl();
+  final Function(String) onCommandReceived;
 
-  VoiceControl({required this.onCommandReceived});
+  final Function(String)? onSpeechChanged;
+
+  VoiceControl({required this.onCommandReceived, this.onSpeechChanged});
+
+  List<DeviceModel> _cachedDevices = [];
+
+  Future<void> refreshDevicesFromFirestore() async {
+    final roomsSnapshot =
+        await FirebaseFirestore.instance.collection('rooms').get();
+    List<DeviceModel> devices = [];
+
+    for (var roomDoc in roomsSnapshot.docs) {
+      final deviceSnapshot =
+          await roomDoc.reference.collection('deviceList').get();
+      for (var deviceDoc in deviceSnapshot.docs) {
+        final data = deviceDoc.data() as Map<String, dynamic>;
+        devices.add(DeviceModel.fromJson(data, deviceDoc.id));
+      }
+    }
+
+    _cachedDevices = devices;
+    print("🔄 Đã làm mới danh sách thiết bị từ Firestore");
+  }
 
   void startListening() async {
+    await refreshDevicesFromFirestore();
+
     bool available = await _speech.initialize(
-      onStatus: (status) => print("Trạng thái: $status"),
-      onError: (error) => print("Lỗi: $error"),
+      onStatus: (status) => print("SpeechToText Status: $status"),
+      onError: (error) => print("Lỗi: ${error.errorMsg}"),
     );
 
     if (available) {
-      isListening = true;
       _speech.listen(
-        onResult: (result) {
+        onResult: (result) async {
+          onSpeechChanged?.call(result.recognizedWords);
           if (result.finalResult) {
-            // Chỉ xử lý khi kết quả cuối cùng
-            String commandText = result.recognizedWords;
+            final commandText = result.recognizedWords;
             print("📢 Lệnh nhận được: $commandText");
             onCommandReceived(commandText);
+            await stopListening();
           }
         },
       );
     }
   }
 
-  void stopListening() {
-    _speech.stop();
-    isListening = false;
+  Future<void> stopListening() async {
+    await _speech.stop();
   }
 
-  void processVoiceCommand(
-    String command,
-    List<int> deviceIds,
-    Function(int, bool) sendCommand,
-    Function(int, bool) updateUI, // ✅ Thêm callback cập nhật UI
-  ) async {
-    command = command.toLowerCase();
+  Future<List<MapEntry<int, bool>>> processVoiceCommand(String command) async {
+    command = command.toLowerCase().trim();
     print("📢 Xử lý lệnh giọng nói: $command");
 
-    Map<int, String> deviceMap = {
-      2: "đèn phòng khách", // khách
-      3: "đèn phòng bếp", //ngủ
-      4: "đèn phòng học", //ngủ
-      5: "đèn phòng tắm", // bếp
-      6: "đèn phòng ngủ", // office
-      7: "tivi", // tắm
-    };
+    String normalize(String text) {
+      return text.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+    }
 
-    int? detectedDeviceId;
-    for (var entry in deviceMap.entries) {
-      if (command.contains(entry.value)) {
-        detectedDeviceId = entry.key;
-        print("✅ Phát hiện thiết bị: ${entry.value} (ID: $detectedDeviceId)");
-        break;
+    List<MapEntry<int, bool>> actions = [];
+
+    final RegExp exp = RegExp(r'\b(bật|tắt)\b\s+(.+?)(?=(\bbật\b|\btắt\b|$))');
+    final matches = exp.allMatches(command);
+
+    for (final match in matches) {
+      final actionText = match.group(1); // "bật" hoặc "tắt"
+      final deviceText = match.group(2); // phần thiết bị như "tivi", "quạt"
+
+      if (actionText == null || deviceText == null) continue;
+
+      bool isOn = actionText == 'bật';
+      final cleanedDeviceText = normalize(deviceText);
+
+      print("🔍 Đang xử lý: [$actionText] [$cleanedDeviceText]");
+
+      for (var device in _cachedDevices) {
+        if (device.controllerName.trim().isEmpty) continue;
+
+        if (cleanedDeviceText.contains(normalize(device.controllerName))) {
+          actions.add(MapEntry(device.devicePort, isOn));
+          print(
+            "🎯 Khớp với: ${device.controllerName} (Port: ${device.devicePort}) → ${isOn ? 'BẬT' : 'TẮT'}",
+          );
+        }
       }
     }
 
-    if (detectedDeviceId != null) {
-      if (_bluetoothControl.controlCharacteristic == null) {
-        print("⚠️ Đặc tính chưa được xác định, tìm kiếm...");
-        await _bluetoothControl.findControlCharacteristic();
-      }
-
-      bool? newState;
-      if (command.contains("bật")) {
-        print("✅ Phát hiện hành động: Bật");
-        newState = true;
-      } else if (command.contains("tắt")) {
-        print("✅ Phát hiện hành động: Tắt");
-        newState = false;
-      }
-
-      if (newState != null) {
-        await _bluetoothControl.sendCommand(detectedDeviceId, newState);
-        sendCommand(detectedDeviceId, newState);
-        updateUI(detectedDeviceId, newState); // ✅ Cập nhật UI thiết bị
-      } else {
-        print("⚠️ Không nhận diện được hành động (bật/tắt)");
-      }
-    } else {
-      print("⚠️ Không nhận diện được thiết bị");
+    if (actions.isEmpty) {
+      print("❗ Không khớp với thiết bị nào.");
+      return actions;
     }
+
+    if (_bluetoothControl.controlCharacteristic == null) {
+      print("⚠️ Đặc tính chưa được xác định, tìm kiếm...");
+      await _bluetoothControl.findControlCharacteristic();
+    }
+
+    for (var action in actions) {
+      _bluetoothControl.sendCommand(action.key, action.value);
+      print(
+        "🔄 Đã gửi lệnh đến thiết bị port ${action.key} (isOn: ${action.value})",
+      );
+    }
+
+    return actions;
   }
 }

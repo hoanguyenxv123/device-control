@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test_control/common_widget/title_add_new.dart';
+import 'package:test_control/screens/add_room/add_room_screen.dart';
 import 'package:test_control/screens/home/widgets/room_card.dart';
+
 import '../../../data/remote/firestore_service.dart';
 import '../../../model/room/room_model.dart';
 import '../../room/room_screen.dart';
@@ -20,8 +22,15 @@ class _YourRoomState extends State<YourRoom> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 20.0,right: 20,left: 20),
-          child: TitleAddNew(title: 'Your Room', addNew: () {}),
+          padding: const EdgeInsets.only(top: 20.0, right: 20, left: 20),
+          child: TitleAddNew(
+            title: 'Your Room',
+            addNew: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => AddRoomScreen()));
+            },
+          ),
         ),
         Expanded(
           child: Padding(

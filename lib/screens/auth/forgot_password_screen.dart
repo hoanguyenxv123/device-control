@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../common_widget/custom_text_field.dart';
 import '../../common_widget/primary_button.dart';
 import '../../constant/app_colors.dart';
@@ -15,9 +16,7 @@ class ForgotPasswordScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           "Forgot Password",
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
         backgroundColor: AppColors.primaryColor,
