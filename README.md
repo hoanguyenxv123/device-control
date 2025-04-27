@@ -1,18 +1,20 @@
-# test_control
+Device Control
+Device Control là một ứng dụng Flutter cho phép người dùng giám sát và điều khiển các thiết bị thông minh từ xa, thông qua kết nối internet hoặc Bluetooth.
 
-A new Flutter project.
+Tính năng chính
+Bật/tắt thiết bị thông minh
 
-## Getting Started
+Giám sát trạng thái thiết bị theo thời gian thực
 
-This project is a starting point for a Flutter application.
+Hỗ trợ nhiều loại thiết bị (đèn, quạt, ổ cắm điện,...)
 
-A few resources to get you started if this is your first Flutter project:
+Giao diện thân thiện, dễ sử dụng
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Kết nối nhanh chóng và bảo mật
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-"# device_control" 
-"# device-control" 
+Công nghệ sử dụng
+Flutter (Dart)
+
+MQTT / Firebase / Bluetooth (tuỳ công nghệ bạn đang dùng)
+
+REST API (nếu app có kết nối server)
